@@ -107,7 +107,7 @@
 	</distributionManagement>
 	
 	<build>
-		<finalName>acats</finalName>
+		<finalName>tesla</finalName>
 		
 		<plugins>
 			<plugin>

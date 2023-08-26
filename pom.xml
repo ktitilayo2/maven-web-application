@@ -107,7 +107,7 @@
 	</distributionManagement>
 	
 	<build>
-		<finalName>ebay</finalName>
+		<finalName>tesla</finalName>
 		
 		<plugins>
 			<plugin>

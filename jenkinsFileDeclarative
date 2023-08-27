@@ -1,0 +1,89 @@
+pipeline{
+  agent {
+    label 'agentBuildNode'
+  } 
+  tools {
+    maven 'maven3.9.4'
+  }
+  //options{}
+  //triggers{}
+stages {
+ stage('1.CodeClone'){
+   steps{
+    git credentialsId: 'gitHubCredentials', url: 'https://github.com/ktitilayo2/maven-web-application'
+    //bat "git clone https://github.com/LandmakTechnology/maven-web-application"
+ }
+  }
+  stage('2MavenBuild'){
+    steps{
+   sh "mvn clean package"
+    }
+ }
+  stage('3codeQuality'){
+    steps{
+   sh "mvn sonar:sonar"
+    }
+ }
+  stage('4UploadArtifacts') {
+    steps{
+      sh "echo configure nexus authentication"
+      //sh "mvn deploy"
+      sh "echo artifacts uploaded"
+    }
+   }
+    stage('5deploy2UAT'){
+      steps{
+    deploy adapters: [tomcat9(credentialsId: 'tomcatCredentials', path: '', url: 'http://172.31.87.118:8080/')], contextPath: null, war: 'target/*.war'
+      }
+ }
+  stage('6Manualapproval'){
+    steps{
+    sh "echo 'ready for review' "
+    timeout(time:5, unit:'HOURS') {
+    input message: 'Application ready for deployment, Please review and approve'
+    }
+    }
+}
+   stage('7deploy2Prod'){
+    steps{
+    deploy adapters: [tomcat9(credentialsId: 'tomcatCredentials', path: '', url: 'http://172.31.87.118:8080/')], contextPath: null, war: 'target/*.war'
+    }
+ }
+   stage('8emailNotify'){
+    steps{
+    emailext body: '''Hi Team
+    
+    Please Review
+    
+    Thanks''', recipientProviders: [developers()], subject: 'Please Review', to: 'ktitilayo2@gmail.com'
+    }
+  }
+}
+  post{ 
+    always{
+    emailext body: '''Hi Team
+    
+    Please Always
+    
+    Thanks''', recipientProviders: [developers()], subject: 'Please Always', to: 'ktitilayo2@gmail.com'
+
+    }
+    success{
+    emailext body: '''Hi Team
+    
+    Success
+    
+    Thanks''', recipientProviders: [developers()], subject: 'Success', to: 'ktitilayo2@gmail.com'
+    }
+    failure{
+    emailext body: '''Hi Team
+    
+    Build Failed
+    
+    Thanks''', recipientProviders: [developers()], subject: 'Please Review this job', to: 'ktitilayo2@gmail.com'
+
+    }
+}
+}
+
+
